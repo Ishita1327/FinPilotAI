@@ -1,0 +1,42 @@
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+
+# Data files
+data/raw/
+data/processed/
+data/sample_documents/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Mac
+.DS_Store
+
+
+# Allow placeholder files inside data directories
+!data/
+data/*
+!data/raw/
+!data/processed/
+data/raw/*
+!data/raw/budget_cashflow/
+!data/raw/historical_market/
+!data/raw/investments/
+!data/raw/personal_finance/
+data/raw/budget_cashflow/*
+data/raw/historical_market/*
+data/raw/investments/*
+data/raw/personal_finance/*
+!data/raw/budget_cashflow/.gitkeep
+!data/raw/historical_market/.gitkeep
+!data/raw/investments/.gitkeep
+!data/raw/personal_finance/.gitkeep
+!data/processed/.gitkeep
+!data/sample_documents/
+data/sample_documents/*
+!data/sample_documents/.gitkeep
