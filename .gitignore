@@ -40,3 +40,7 @@ data/raw/personal_finance/*
 !data/sample_documents/
 data/sample_documents/*
 !data/sample_documents/.gitkeep
+.env
+.venv/
+__pycache__/
+*.pyc
