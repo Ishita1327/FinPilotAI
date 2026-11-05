@@ -125,3 +125,77 @@ def run_tool(tool, month, category):
     finally:
         conn.close()
 
+def explain_results(client, question, tool, rows):
+    """Explain query output without inventing financial values."""
+    if not rows:
+        return ("No matching financial records were returned. "
+                "I can't determine the answer from the available data.")
+
+    prompt = (
+        "You are FinPilotAI, a financial analysis assistant. "
+        "Answer the user's question using ONLY the query results supplied below. "
+        "Mention relevant amounts and dates; never invent transactions, causes, "
+        "or explanations that are not supported by the data. "
+        "Be clear, concise, and say when the data cannot establish a cause.\n"
+        "User question: " + question + "\n"
+        "Selected analytics tool: " + tool + "\n"
+        "Query results (JSON): " + json.dumps(rows, default=str)
+    )
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(temperature=0),
+    )
+    return response.text or "Gemini did not return a text explanation."
+
+
+def main():
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        print('GEMINI_API_KEY is missing from the project .env file.')
+        return
+
+    client = genai.Client(api_key=api_key)
+
+    # Gemini-only test: does not connect to Snowflake.
+    if len(sys.argv) > 1 and sys.argv[1] == '--test-gemini':
+        question = 'Why was my spending unusually high in June 2019?'
+        print('Testing Gemini tool selection for:', question)
+        try:
+            tool, month, category = choose_tool(client, question)
+            print('Selected tool:', tool)
+            print('Month:', month)
+            print('Category:', category)
+            print('Gemini tool selection test passed.')
+        except Exception as exc:
+            print('Gemini tool selection test failed:', type(exc).__name__, str(exc))
+        return
+
+    print('FinPilotAI Expense Analysis Agent (type quit to exit)')
+    while True:
+        try:
+            question = input('\nYou: ').strip()
+        except (EOFError, KeyboardInterrupt):
+            print('\nGoodbye!')
+            break
+
+        if question.lower() in ('quit', 'exit', 'q'):
+            print('Goodbye!')
+            break
+        if not question:
+            continue
+
+        try:
+            tool, month, category = choose_tool(client, question)
+            print('Selected tool:', tool, '| month:', month, '| category:', category)
+            print('Fetching financial results from Snowflake...')
+            rows = run_tool(tool, month, category)
+            print('\nFinPilotAI:', explain_results(client, question, tool, rows))
+        except Exception as exc:
+            print('Unable to complete this request:', type(exc).__name__, str(exc))
+            print('Gemini may be working even if the Snowflake connection is unavailable.')
+
+
+if __name__ == '__main__':
+    main()
+
