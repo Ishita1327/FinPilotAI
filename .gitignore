@@ -44,3 +44,5 @@ data/sample_documents/*
 .venv/
 __pycache__/
 *.pyc
+config/budget_limits.json
+.DS_Store
